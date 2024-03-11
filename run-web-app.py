@@ -163,7 +163,19 @@ def process_files(video, image):
     return ''
 
 
+def initiate_and_verify():
+    if not os.path.exists('./media/source/'):
+        os.makedirs('./media/source/')
+    if not os.path.exists('./media/driving/'):
+        os.makedirs('./media/driving/')
+    if not os.path.exists('./media/output/'):
+        os.makedirs('./media/output/')
+
+
 if __name__ == '__main__':
+
+    initiate_and_verify()
+
     # Define the interface
     iface = gr.Interface(
         fn=process_files,
@@ -171,13 +183,43 @@ if __name__ == '__main__':
             gr.components.Video(label="Input Video", autoplay=True),
             gr.components.Image(label="Input Image")
         ],
-        # examples=[["./media/driving/driving.mp4"], ["./media/source/source.png"]],
+        examples=[["./media/driving/driving.mp4", "./media/source/source.png"]],
         outputs=gr.components.Video(autoplay=True),
         title="Simple Deepfake Generation",
         description="""
                        Upload a video and an image, and get a animated deepfake.
                     """,
-        cache_examples=True
+        # cache_examples=True,
+        allow_flagging="never",
+        theme="soft",
+        article="""
+                        <div style="font-size:2em; padding-left:100px;">
+                        <strong>We will use these tools in this workshop.</strong>
+                        <strong style="color:red">Do not access to the links until we ask you to do so.</strong>
+                        <br><br>
+                        <ol>
+                            <li>
+                                <a href="https://www.padlet.com">Padlet</a>: This is going to be our workspace for different activities:
+                                <ul>
+                                    <li><a href="padlet.com/mferrarelli2/activity-1-2-deepfake-exploration-and-interview-ht3dltgfoifd8ua5">Activity 1 and 2.</a></li>
+                                    <li><a href="padlet.com/mferrarelli2/activity-3-4-deepfake-creation-and-activity-design-m94e54utkpddxvkl">Activity 3 and 4.</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                We will create a simple deepfake using <strong>this</strong> tool. The instructions are as follows:
+                                <details>
+                                    <summary><i>Instructions: See More</i></summary>
+                                    <ul>
+                                        <li>Step 1: Upload the driving video we have shared with you in Padlet (Activity 3 and 4) to the top-left panel as shown in the screenshot.</li> 
+                                        <li>Step 2: Upload the target image to the bottom-left panel as shown in the attached picture. </li>
+                                        <li>Step 3: Press the submit button. The generated deepfake video will be visible on the right panel.</li>
+                                    </ul>
+                                    For details: see this <a href="https://docs.google.com/document/d/1rafLqlEA6qgAQ-z57jwEfS_5shlvhQVC/edit?usp=drive_link&ouid=102019758981829555460&rtpof=true&sd=true">document</a>.
+                                </details>
+                            </li>
+                            <li><a href="https://nus.syd1.qualtrics.com/jfe/form/SV_eqzFjqTwypMSp9k">Survey</a>: We want to know your thoughts about this workshop.</li>
+                        </div>
+                    """
     )
 
     # Launch the app
