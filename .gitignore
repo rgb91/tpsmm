@@ -7,3 +7,5 @@ log/*
 *.pyc
 *.jpeg
 checkpoints/*
+.idea
+__pycache__
