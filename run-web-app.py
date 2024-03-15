@@ -180,8 +180,8 @@ if __name__ == '__main__':
     iface = gr.Interface(
         fn=process_files,
         inputs=[
-            gr.components.Video(label="Input Video", autoplay=True),
-            gr.components.Image(label="Input Image")
+            gr.components.Video(label="Driving Video", autoplay=True),
+            gr.components.Image(label="Target Face Image")
         ],
         examples=[["./media/driving/driving.mp4", "./media/source/source.png"]],
         outputs=gr.components.Video(autoplay=True),
@@ -223,5 +223,5 @@ if __name__ == '__main__':
     )
 
     # Launch the app
-    iface.launch()
-    # iface.launch(share=True)
+    # iface.launch()
+    iface.launch(share=True)
