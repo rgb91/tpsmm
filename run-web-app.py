@@ -33,7 +33,10 @@ def find_best_frame(source, driving, cpu):
     #                                   device= 'cpu' if cpu else 'cuda')
     fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, flip_input=True,
                                       device='cpu' if cpu else 'cuda')
-    kp_source = fa.get_landmarks(255 * source)[0]
+    try:
+        kp_source = fa.get_landmarks(255 * source)[0]
+    except:
+        raise gr.Error("Face not found in the image. Could not process.")
     kp_source = normalize_kp(kp_source)
     norm = float('inf')
     frame_num = 0
@@ -68,7 +71,6 @@ def deepfake_generation_main(source_image_path, driving_video_path, output_video
     if len(source_image.shape) < 3:  # gray (one-channel) to rgb (three-channel)
         source_image = np.stack((source_image,) * 3, axis=-1)
 
-    # TODO: source image crop to face
     source_image = resize(source_image, (pixel, pixel))[..., :3]
 
     fps = reader.get_meta_data()['fps']
@@ -126,20 +128,18 @@ def deepfake_generation_main(source_image_path, driving_video_path, output_video
     return os.path.exists(output_video_path)
 
 
-def crop_face(img_path):
-    img = cv2.imread(img_path)
+def has_face(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
     face_cascade = cv2.CascadeClassifier('./checkpoints/haarcascade_frontalface_alt2.xml')
-
-    # Detect faces
     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-
     # Draw rectangle around the faces and crop the faces
-    for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
-        face = img[y:y + h, x:x + w]
-        return face
+    # for (x, y, w, h) in faces:
+    #     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+    #     face = img[y:y + h, x:x + w]
+    #     return True, face
+    if len(faces) == 0:
+        return False
+    return True
 
 
 def process_files(video, image):
@@ -148,13 +148,26 @@ def process_files(video, image):
     # This is a placeholder URL, replace with your actual video URL
 
     rand_num = random.randint(9999, 100000)
-    if not os.path.basename(video).endswith('.mp4'):
-        return ''
     driving_video_save_path = f'./media/driving/driving_{rand_num}.mp4'
     source_image_save_path = f'./media/source/source_{rand_num}.jpg'
     output_video_save_path = f'./media/output/output_{rand_num}.mp4'
 
+    if not os.path.basename(video).endswith('.mp4'):
+        shutil.copy(video, driving_video_save_path)
+        raise gr.Error("Video has to be a .mp4 file.")
+    if not type(image) is np.ndarray:
+        cv2.imwrite(source_image_save_path, image)
+        raise gr.Error("Could not read image. Recommended to use a .jpg file.")
+    if not image.shape[0] == image.shape[1]:
+        gr.Warning("Recommended to use a square image.")
+
+    # print(type(image), type(video), video)
+
+    if not has_face(image):
+        raise gr.Error("Face was not detected in the image.")
+
     shutil.copy(video, driving_video_save_path)
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     cv2.imwrite(source_image_save_path, image)
 
@@ -187,7 +200,7 @@ if __name__ == '__main__':
         outputs=gr.components.Video(autoplay=True),
         title="Simple Deepfake Generation",
         description="""
-                       Upload a video and an image, and get a animated deepfake.
+                       Upload a video and an image, and get a animated deepfake. It is better to have a square sized JPG image. 
                     """,
         # cache_examples=True,
         allow_flagging="never",
